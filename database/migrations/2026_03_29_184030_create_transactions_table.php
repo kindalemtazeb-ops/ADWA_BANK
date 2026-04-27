@@ -8,13 +8,16 @@ return new class extends Migration {
     public function up(): void {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('account_id')->constrained('accounts')->onDelete('cascade');
-            $table->string('type'); // 'Transfer', 'Deposit'
+            // account_id የነበረውን ወደ account_number ቀይረነዋል
+            $table->string('account_number');
+            $table->string('type'); // 'Deposit', 'Withdraw', 'Transfer Out', 'Transfer In'
             $table->decimal('amount', 15, 2);
-            $table->string('receiver_phone')->nullable();
+            // ለታሪክ ገጹ የሚጠቅም መግለጫ (ለምሳሌ፡ Sent to...)
+            $table->string('description')->nullable();
             $table->timestamps();
         });
     }
+
     public function down(): void {
         Schema::dropIfExists('transactions');
     }

@@ -61,11 +61,12 @@ return [
     |
     | Here you may specify the default timezone for your application, which
     | will be used by the PHP date and date-time functions. The timezone
-    | is set to "UTC" by default as it is suitable for most use cases.
+    | is set to "Africa/Addis_Ababa" for Ethiopian time.
     |
     */
 
-    'timezone' => 'UTC',
+    // እዚህ ጋር 'UTC' የነበረው ወደ 'Africa/Addis_Ababa' ተቀይሯል
+    'timezone' => 'Africa/Addis_Ababa',
 
     /*
     |--------------------------------------------------------------------------

@@ -2,80 +2,83 @@
 <html lang="am">
 <head>
     <meta charset="UTF-8">
-    <title>አድዋ ባንክ - ገንዘብ ማስተላለፊያ</title>
+    <title>ADWA BANK - TRANSFER</title>
     <style>
-        body { font-family: sans-serif; background: #f4f4f4; padding: 40px; }
-        .card { background: white; padding: 30px; border-radius: 12px; max-width: 500px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        input { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        .name-info { font-size: 13px; color: #27ae60; font-weight: bold; margin-bottom: 10px; display: block; min-height: 18px; }
-        button { width: 100%; padding: 12px; background: #c0392b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; }
-        .error { color: #721c24; background: #f8d7da; padding: 10px; border-radius: 5px; margin-bottom: 15px; }
+        body { font-family: sans-serif; background: #f8f9fa; padding: 30px; }
+        .container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
+        label { font-weight: bold; color: #34495e; display: block; margin-top: 15px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
+        .btn { width: 100%; padding: 14px; background: #f39c12; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 20px; }
+        .btn:hover { background: #e67e22; }
+        .name-info { font-size: 13px; font-weight: bold; min-height: 18px; display: block; margin-bottom: 5px; }
+        .error-text { color: #e74c3c; font-size: 12px; display: block; margin-top: 5px; }
+        .back-link { display: block; text-align: center; margin-top: 15px; color: #3498db; text-decoration: none; font-size: 14px; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>💸 ገንዘብ ማስተላለፊያ</h2>
+<div class="container">
+    <h2>💸 ብር ማስተላለፊያ (TRANSFER)</h2>
 
-        @if ($errors->any())
-            <div class="error">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </div>
-        @endif
+    <form action="{{ route('admin.accounts.doTransfer') }}" method="POST">
+        @csrf
 
-        <form action="{{ route('admin.accounts.doTransfer') }}" method="POST" id="transferForm">
-            @csrf
-            <label>የላኪ አካውንት ቁጥር:</label>
-            <input type="text" name="sender_account" id="sender_acc" placeholder="የላኪው ቁጥር..." required autocomplete="off">
-            <span id="sender_name" class="name-info"></span>
+        <label>መነሻ አካውንት:</label>
+        <input type="text" name="from_account" id="from_account"
+               placeholder="የላኪ 13 ዲጂት አካውንት" maxlength="13"
+               oninput="this.value = this.value.replace(/[^0-9]/g, ''); checkName(this.value, 'sender_name')" required>
+        <span id="sender_name" class="name-info"></span>
+        @error('from_account') <span class="error-text">{{ $message }}</span> @enderror
 
-            <label>የተቀባይ አካውንት ቁጥር:</label>
-            <input type="text" name="receiver_account" id="receiver_acc" placeholder="የተቀባዩ ቁጥር..." required autocomplete="off">
-            <span id="receiver_name" class="name-info"></span>
+        <label>የላኪ ሚስጥር ቁጥር (PIN):</label>
+        <input type="password" name="pin" placeholder="የላኪውን 4 ድጂት PIN ያስገቡ" maxlength="4" required>
+        @error('pin') <span class="error-text">{{ $message }}</span> @enderror
 
-            <label>የገንዘብ መጠን (ETB):</label>
-            <input type="number" name="amount" required>
+        <hr style="border: 0.5px solid #eee; margin: 20px 0;">
 
-            <label>የእርስዎ ሚስጥር ቁጥር (PIN):</label>
-            <input type="password" name="pin" maxlength="4" required>
+        <label>መድረሻ አካውንት:</label>
+        <input type="text" name="to_account" id="to_account"
+               placeholder="የተቀባይ 13 ዲጂት አካውንት" maxlength="13"
+               oninput="this.value = this.value.replace(/[^0-9]/g, ''); checkName(this.value, 'receiver_name')" required>
+        <span id="receiver_name" class="name-info"></span>
+        @error('to_account') <span class="error-text">{{ $message }}</span> @enderror
 
-            <button type="submit">አሁን አስተላልፍ</button>
-        </form>
-    </div>
+        <label>የብር መጠን:</label>
+        <input type="number" name="amount" placeholder="የሚላከው የገንዘብ መጠን" min="1" required>
+        @error('amount') <span class="error-text">{{ $message }}</span> @enderror
 
-    <script>
-        function setupLiveSearch(inputId, labelId) {
-            const input = document.getElementById(inputId);
-            const label = document.getElementById(labelId);
+        <button type="submit" class="btn">አስተላልፍ</button>
+    </form>
 
-            input.addEventListener('input', function() {
-                const accNo = this.value;
-                if (accNo.length >= 9) { // አካውንት ቁጥሩ ሲጠናቀቅ
-                    fetch('/admin/accounts/search/' + accNo)
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                label.innerText = "👤 ስም: " + data.name;
-                                label.style.color = "#27ae60";
-                            } else {
-                                label.innerText = "❌ አካውንቱ አልተገኘም!";
-                                label.style.color = "#c0392b";
-                            }
-                        });
-                } else {
-                    label.innerText = "";
-                }
-            });
+    <a href="{{ route('admin.accounts.index') }}" class="back-link">ወደ ዝርዝር ተመለስ</a>
+</div>
+
+<script>
+    function checkName(accountNumber, displayId) {
+        let display = document.getElementById(displayId);
+
+        if (accountNumber.length === 13) {
+            display.innerText = "በመፈለግ ላይ...";
+            display.style.color = "#d35400";
+
+            fetch(`/admin/accounts/search/${accountNumber}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        display.innerText = "✅ " + data.name;
+                        display.style.color = "#27ae60";
+                    } else {
+                        display.innerText = "❌ አካውንቱ አልተገኘም!";
+                        display.style.color = "#e74c3c";
+                    }
+                })
+                .catch(() => {
+                    display.innerText = "⚠️ ሲስተም ስህተት!";
+                });
+        } else {
+            display.innerText = "";
         }
-
-        setupLiveSearch('sender_acc', 'sender_name');
-        setupLiveSearch('receiver_acc', 'receiver_name');
-
-        // ሲላክ ማረጋገጫ መጠየቅ
-        document.getElementById('transferForm').onsubmit = function() {
-            return confirm("እርግጠኛ ነህ? ገንዘቡ ሊላክ ነው!");
-        };
-    </script>
+    }
+</script>
 </body>
 </html>

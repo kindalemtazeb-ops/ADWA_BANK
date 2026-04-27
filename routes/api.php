@@ -2,22 +2,15 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UssdController; // አንድ ጊዜ ብቻ መጠቀም ይበቃል
+use App\Http\Controllers\UssdController;
 
 /*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| እዚህ ጋር የ USSD ሲስተምህን አድራሻ እናስቀምጣለን።
-|
+| API Routes for Adwa Bank USSD
 */
 
-// ለ USSD ጥያቄዎች (POST እና GET ሁለቱንም እንዲቀበል 'any' ተጠቅሜያለሁ)
-// ይህ ሲስተሙ ከ Africa's Talking ወይም ከ Simulator ጋር እንዲገናኝ ይረዳል።
+// ማንኛውንም የ USSD ጥያቄ በዚህ አድራሻ ያስተናግዳል
 Route::any('/ussd', [UssdController::class, 'handleUssd']);
 
-// Default route (ከፈለግከው መተው ትችላለህ)
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });

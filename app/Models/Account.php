@@ -9,12 +9,13 @@ class Account extends Model
 {
     use HasFactory;
 
+    // እነዚህ በሥዕል 2 ላይ የነበሩት ፊልዶች መሆናቸውን አረጋግጥ
     protected $fillable = [
         'full_name',
         'phone_number',
-        'account_number',
         'balance',
+        'account_number',
+        'secret_number',
         'pin',
-        'interest_rate', // አዲሱ እዚህ ጋር ተጨምሯል
     ];
 }

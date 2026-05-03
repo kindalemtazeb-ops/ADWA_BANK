@@ -9,10 +9,9 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-  public function up()
-{
-    Schema::table('customers', function (Blueprint $table) {
-        $table->string('photo')->nullable()->after('full_name');
+   public function up(): void {
+    Schema::table('transactions', function (Blueprint $table) {
+        $table->string('bank_name')->default('Adwa Bank')->after('receiver_account');
     });
 }
 
@@ -21,7 +20,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('customers', function (Blueprint $table) {
+        Schema::table('transactions', function (Blueprint $table) {
             //
         });
     }

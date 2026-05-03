@@ -65,7 +65,7 @@ return [
     |
     */
 
-    // እዚህ ጋር 'UTC' የነበረው ወደ 'Africa/Addis_Ababa' ተቀይሯል
+    // እዚህ ጋር ወደ ኢትዮጵያ ሰዓት (Africa/Addis_Ababa) ተቀይሯል
     'timezone' => 'Africa/Addis_Ababa',
 
     /*

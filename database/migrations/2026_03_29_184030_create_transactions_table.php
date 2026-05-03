@@ -8,13 +8,27 @@ return new class extends Migration {
     public function up(): void {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            // account_id የነበረውን ወደ account_number ቀይረነዋል
-            $table->string('account_number');
+            $table->string('account_number'); // የደንበኛው አካውንት
             $table->string('type'); // 'Deposit', 'Withdraw', 'Transfer Out', 'Transfer In'
             $table->decimal('amount', 15, 2);
-            // ለታሪክ ገጹ የሚጠቅም መግለጫ (ለምሳሌ፡ Sent to...)
+
+            // --- ሪል ወርልድ ባንክ ላይ የሚጨመሩ ---
+            // 'after' የሚለው እዚህ ጋር ተወግዷል
+            $table->string('reference_number')->unique();
+
+            // ከሌላ ባንክ ጋር ለወደፊት ለማገናኘት (Optional)
+            $table->string('receiver_account')->nullable();
+
             $table->string('description')->nullable();
+
+            // ዝውውሩን የፈጸመው ሰራተኛ መታወቂያ (ለኦዲት)
+            $table->unsignedBigInteger('staff_id')->nullable();
+
             $table->timestamps();
+
+            // ኢንዴክስ መጨመር ፍለጋን ያፈጥናል
+            $table->index('account_number');
+            $table->index('reference_number');
         });
     }
 
@@ -22,3 +36,4 @@ return new class extends Migration {
         Schema::dropIfExists('transactions');
     }
 };
+

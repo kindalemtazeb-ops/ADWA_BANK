@@ -27,6 +27,28 @@
             transition: 0.3s;
         }
         input:focus { border-color: #e74c3c; outline: none; box-shadow: 0 0 5px rgba(231, 76, 60, 0.2); }
+
+        /* የፎቶ ማሳያ ስታይል */
+        #customer-info {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px dashed #ccc;
+        }
+        #customer-photo {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #e74c3c;
+            margin-bottom: 10px;
+            background: #eee;
+        }
+
         .btn {
             width: 100%;
             padding: 14px;
@@ -43,11 +65,10 @@
         .btn:hover { background: #c0392b; }
         .error { color: #e74c3c; font-size: 13px; margin-top: 5px; font-weight: 500; }
         .account-name-display {
-            margin-top: 5px;
-            font-size: 14px;
+            font-size: 16px;
             color: #27ae60;
             font-weight: bold;
-            min-height: 20px;
+            text-align: center;
         }
         .back-link { display: block; text-align: center; margin-top: 20px; text-decoration: none; color: #7f8c8d; font-size: 14px; }
         .back-link:hover { color: #2c3e50; }
@@ -58,15 +79,20 @@
 <div class="container">
     <h2>🏧 ብር ማውጫ (Withdraw)</h2>
 
+    <!-- የደንበኛ ፎቶ እና ስም ማሳያ -->
+    <div id="customer-info">
+        <img id="customer-photo" src="" alt="Customer Photo">
+        <div id="account_name" class="account-name-display"></div>
+    </div>
+
     <form action="{{ route('admin.accounts.doWithdraw') }}" method="POST">
         @csrf
 
         <div class="form-group">
             <label>የአካውንት ቁጥር (Account Number):</label>
             <input type="text" id="account_number" name="account_number"
-                   placeholder="ለምሳሌ፡ 250000001"
-                   value="{{ old('account_number') }}" required>
-            <div id="account_name" class="account-name-display"></div>
+                   placeholder="የአካውንት ቁጥሩን እዚህ ያስገቡ..."
+                   value="{{ old('account_number') }}" required autocomplete="off">
             @error('account_number') <div class="error">{{ $message }}</div> @enderror
         </div>
 
@@ -89,25 +115,43 @@
 </div>
 
 <script>
-    // አካውንት ቁጥር ሲጻፍ ስም ፈልጎ ለማምጣት
     document.getElementById('account_number').addEventListener('input', function() {
-        let accNo = this.value;
+        // ስፔስ ካለ እናጸዳዋለን
+        let accNo = this.value.replace(/\s+/g, '');
+        let infoDiv = document.getElementById('customer-info');
         let nameDisplay = document.getElementById('account_name');
+        let photoDisplay = document.getElementById('customer-photo');
 
-        if (accNo.length >= 5) {
+        if (accNo.length >= 13) {
             fetch(`/admin/accounts/search/${accNo}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         nameDisplay.innerText = "👤 ባለቤት፡ " + data.name;
                         nameDisplay.style.color = "#27ae60";
+
+                        // ማስተካከያ፡ data.photo ሙሉ URL ስለሆነ መጨመር አያስፈልገውም
+                        if (data.photo) {
+                            photoDisplay.src = data.photo;
+                        } else {
+                            // ፎቶ ከሌለ ስሙን ተጠቅሞ Avatar ይፈጥራል
+                            photoDisplay.src = "https://ui-avatars.com/api/?name=" + data.name + "&background=random";
+                        }
+
+                        infoDiv.style.display = "flex";
                     } else {
                         nameDisplay.innerText = "❌ አካውንቱ አልተገኘም!";
                         nameDisplay.style.color = "#e74c3c";
+                        photoDisplay.src = "https://ui-avatars.com/api/?name=Unknown&background=e74c3c&color=fff";
+                        infoDiv.style.display = "flex";
                     }
+                })
+                .catch(err => {
+                    console.error("Error fetching data:", err);
+                    infoDiv.style.display = "none";
                 });
         } else {
-            nameDisplay.innerText = "";
+            infoDiv.style.display = "none";
         }
     });
 </script>

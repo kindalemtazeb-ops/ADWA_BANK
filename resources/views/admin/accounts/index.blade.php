@@ -39,7 +39,7 @@
             align-items: center;
             justify-content: center;
             gap: 20px;
-            position: relative; /* ለLogout ቁልፍ አቀማመጥ አስፈላጊ ነው */
+            position: relative;
         }
 
         .logout-container {
@@ -215,7 +215,6 @@
 
 <div class="container">
     <div class="header-section">
-        <!-- Logout Form ተጨምሯል -->
         <div class="logout-container">
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
@@ -311,6 +310,7 @@
 
     <div class="search-container">
         <form action="{{ route('admin.accounts.index') }}" method="GET" class="search-form">
+            <!-- በፍለጋ ሳጥኑ ላይ ፊደላት ብቻ እንዲገቡ pattern ተጨምሯል -->
             <input type="text"
                    name="search"
                    value="{{ request('search') }}"
@@ -386,6 +386,5 @@
         {{ $accounts->appends(['search' => request('search')])->links() }}
     </div>
 </div>
-
 </body>
 </html>

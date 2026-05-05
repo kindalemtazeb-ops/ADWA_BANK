@@ -16,7 +16,6 @@
         .info-text { font-size: 12px; color: #7f8c8d; font-style: italic; margin-bottom: 10px; display: block; }
         .is-invalid { border: 1px solid #e74c3c; }
 
-        /* የፎቶ መጫኛ ቦታ ስታይል */
         .file-input-wrapper {
             background: #f9f9f9;
             border: 2px dashed #cbd5e0;
@@ -36,7 +35,6 @@
 
             <label>የደንበኛው ፎቶ</label>
             <div class="file-input-wrapper">
-                <!-- 'required' ተጨምሯል -->
                 <input type="file" name="photo" accept="image/*" class="{{ $errors->has('photo') ? 'is-invalid' : '' }}" required>
                 <span class="info-text">የደንበኛውን መታወቂያ ፎቶ እዚህ ይጫኑ</span>
             </div>
@@ -44,8 +42,20 @@
                 <span class="error-msg">{{ $message }}</span>
             @enderror
 
-            <label>ሙሉ ስም (ስም የአባት እና የአያት ስም)</label>
-            <input type="text" name="full_name" class="{{ $errors->has('full_name') ? 'is-invalid' : '' }}" placeholder="ለምሳሌ፡ ካሳሁን በቀለ ታደሰ" value="{{ old('full_name') }}" required>
+            <label>ሙሉ ስም (የራስ፣ የአባት እና የአያት ስም)</label>
+            <!--
+                አዲስ የተስተካከለ pattern: ^[A-Za-z]+(\s+[A-Za-z]+){2,}$
+                ይህ ቢያንስ 3 ስሞች እንዲኖሩ እና ቁጥር እንዳይገባ ይከለክላል።
+            -->
+            <input type="text"
+                   name="full_name"
+                   class="{{ $errors->has('full_name') ? 'is-invalid' : '' }}"
+                   placeholder="ለምሳሌ፡ Abebe Kebede Alamu"
+                   value="{{ old('full_name') }}"
+                   pattern="^[A-Za-z]+(\s+[A-Za-z]+){2,}$"
+                   title="እባክዎ ፊደላትን ብቻ በመጠቀም የራስዎን፣ የአባትዎን እና የአያትዎን ስም ያስገቡ (ቁጥር አይፈቀድም)"
+                   required>
+            <span class="info-text" style="color: #2980b9;">* ሶስቱንም ስም ያለ ቁጥር ማስገባት ግዴታ ነው።</span>
             @error('full_name')
                 <span class="error-msg">{{ $message }}</span>
             @enderror
@@ -55,19 +65,26 @@
             <span class="info-text">ማሳሰቢያ፡ ቁጥሩ በሲስተሙ በራስ-ሰር ይፈጠራል።</span>
 
             <label>ስልክ ቁጥር</label>
-            <input type="text" name="phone_number" class="{{ $errors->has('phone_number') ? 'is-invalid' : '' }}" placeholder="ስልክ ቁጥር" value="{{ old('phone_number') }}" required>
+            <input type="text"
+                   name="phone_number"
+                   class="{{ $errors->has('phone_number') ? 'is-invalid' : '' }}"
+                   placeholder="09XXXXXXXX"
+                   value="{{ old('phone_number') }}"
+                   pattern="^(09|07)\d{8}$"
+                   title="ትክክለኛ የኢትዮጵያ ስልክ ቁጥር ያስገቡ (በ09 ወይም 07 የሚጀምር)"
+                   required>
             @error('phone_number')
                 <span class="error-msg">{{ $message }}</span>
             @enderror
 
             <label>ሚስጥር ቁጥር (4 ድጂት)</label>
-            <input type="password" name="pin" class="{{ $errors->has('pin') ? 'is-invalid' : '' }}" placeholder="****" maxlength="4" required>
+            <input type="password" name="pin" class="{{ $errors->has('pin') ? 'is-invalid' : '' }}" placeholder="****" maxlength="4" pattern="\d{4}" title="እባክዎ 4 አሃዝ ብቻ ያስገቡ" required>
             @error('pin')
                 <span class="error-msg">{{ $message }}</span>
             @enderror
 
             <label>የመጀመሪያ ተቀማጭ (ብር)</label>
-            <input type="number" name="balance" class="{{ $errors->has('balance') ? 'is-invalid' : '' }}" placeholder="0.00" value="{{ old('balance', 0) }}" min="100" required>
+            <input type="number" name="balance" class="{{ $errors->has('balance') ? 'is-invalid' : '' }}" placeholder="0.00" value="{{ old('balance', 100) }}" min="100" required>
             @error('balance')
                 <span class="error-msg">{{ $message }}</span>
             @enderror

@@ -26,13 +26,14 @@ class AccountController extends Controller {
     }
 
     // --- ደንበኞችን በዝርዝር ማሳያ (Index) ---
+    // እዚህ ጋር የፍለጋ logic ከ 'LIKE' ወደ '=' ተቀይሯል (Exact Match እንዲሆን)
     public function index(Request $request) {
         $search = $request->input('search');
 
         $accounts = Account::when($search, function ($query, $search) {
-            return $query->where('full_name', 'LIKE', "%{$search}%")
-                         ->orWhere('account_number', 'LIKE', "%{$search}%")
-                         ->orWhere('phone_number', 'LIKE', "%{$search}%");
+            return $query->where('full_name', $search)
+                         ->orWhere('account_number', $search)
+                         ->orWhere('phone_number', $search);
         })->latest()->paginate(10);
 
         $transactions = Transaction::latest()->take(10)->get();
@@ -77,11 +78,18 @@ class AccountController extends Controller {
     // --- አዲስ ደንበኛ መመዝገቢያ ---
     public function store(Request $request) {
         $request->validate([
-            'full_name' => ['required', 'string', 'max:255'],
-            'phone_number' => 'required|unique:accounts,phone_number',
+            'full_name' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^[a-zA-Z]+(?:\s+[a-zA-Z]+){2,}$/'
+            ],
+            'phone_number' => ['required', 'numeric', 'digits:10', 'regex:/^(09|07)\d{8}$/', 'unique:accounts,phone_number'],
             'pin' => 'required|digits:4',
             'balance' => 'required|numeric|min:100',
             'photo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ], [
+            'full_name.regex' => 'እባክዎ የደንበኛውን፣ የአባቱን እና የአያቱን ስም በፊደላት ብቻ ያስገቡ (ቁጥር አይፈቀድም)።',
         ]);
 
         do {
@@ -127,9 +135,16 @@ class AccountController extends Controller {
     public function update(Request $request, $id) {
         $account = Account::findOrFail($id);
         $request->validate([
-            'full_name' => 'required|string|max:255',
-            'phone_number' => 'required|unique:accounts,phone_number,' . $id,
+            'full_name' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^[a-zA-Z]+(?:\s+[a-zA-Z]+){2,}$/'
+            ],
+            'phone_number' => ['required', 'numeric', 'digits:10', 'regex:/^(09|07)\d{8}$/', 'unique:accounts,phone_number,' . $id],
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ], [
+            'full_name.regex' => 'እባክዎ የደንበኛውን፣ የአባቱን እና የአያቱን ስም በፊደላት ብቻ ያስገቡ (ቁጥር አይፈቀድም)።',
         ]);
 
         $account->full_name = $request->full_name;
@@ -146,7 +161,7 @@ class AccountController extends Controller {
         return redirect()->route('admin.accounts.index')->with('success', "መረጃው ተዘምኗል!");
     }
 
-    // --- የዝውውር ታሪክ (History) ---
+    // --- የዝውውር ታሪክ ---
     public function history($id) {
         $account = Account::findOrFail($id);
         $transactions = Transaction::where('account_number', $account->account_number)
@@ -156,7 +171,7 @@ class AccountController extends Controller {
         return view('admin.accounts.history', compact('account', 'transactions'));
     }
 
-    // --- ገንዘብ ማስተላለፊያ (doTransfer) ---
+    // --- ገንዘብ ማስተላለፊያ ---
     public function doTransfer(Request $request) {
         $request->validate([
             'from_account' => 'required',
@@ -202,20 +217,10 @@ class AccountController extends Controller {
             ]);
         });
 
-        // እዚህ ጋር የተቀባዩን ፎቶ እና አካውንት ቁጥር ወደ index page በ session ልከናል
-        return redirect()->route('admin.accounts.index')
-            ->with('success', "ዝውውሩ ተሳክቷል!")
-            ->with('name', $from->full_name)
-            ->with('photo', $from->photo)
-            ->with('phone', $from->phone_number)
-            ->with('amount', $request->amount)
-            ->with('type', 'Transfer')
-            ->with('receiver', $to ? $to->full_name : $toAccNo)
-            ->with('receiver_acc', $toAccNo)
-            ->with('receiver_photo', $to ? $to->photo : null);
+        return redirect()->route('admin.accounts.index')->with('success', "ዝውውሩ ተሳክቷል!");
     }
 
-    // --- ገቢ ማድረጊያ (doDeposit) ---
+    // --- ገቢ ማድረጊያ ---
     public function doDeposit(Request $request) {
         $request->validate(['account_number' => 'required', 'amount' => 'required|numeric|min:1']);
         $accNo = str_replace(' ', '', $request->account_number);
@@ -234,16 +239,10 @@ class AccountController extends Controller {
             ]);
         });
 
-        return redirect()->route('admin.accounts.index')
-            ->with('success', "ብር {$request->amount} ገቢ ተደርጓል!")
-            ->with('name', $account->full_name)
-            ->with('photo', $account->photo)
-            ->with('phone', $account->phone_number)
-            ->with('amount', $request->amount)
-            ->with('type', 'Deposit');
+        return redirect()->route('admin.accounts.index')->with('success', "ብር {$request->amount} ገቢ ተደርጓል!");
     }
 
-    // --- ወጪ ማድረጊያ (doWithdraw) ---
+    // --- ወጪ ማድረጊያ ---
     public function doWithdraw(Request $request) {
         $request->validate(['account_number' => 'required', 'amount' => 'required|numeric|min:1', 'pin' => 'required|digits:4']);
         $accNo = str_replace(' ', '', $request->account_number);
@@ -264,16 +263,10 @@ class AccountController extends Controller {
             ]);
         });
 
-        return redirect()->route('admin.accounts.index')
-            ->with('success', "ብር {$request->amount} ወጪ ተደርጓል!")
-            ->with('name', $account->full_name)
-            ->with('photo', $account->photo)
-            ->with('phone', $account->phone_number)
-            ->with('amount', $request->amount)
-            ->with('type', 'Withdraw');
+        return redirect()->route('admin.accounts.index')->with('success', "ብር {$request->amount} ወጪ ተደርጓል!");
     }
 
-    // --- አካውንት ማጥፊያ (Delete) ---
+    // --- አካውንት ማጥፊያ ---
     public function destroy($id) {
         $account = Account::findOrFail($id);
         if ($account->photo) { Storage::disk('public')->delete($account->photo); }
@@ -283,3 +276,4 @@ class AccountController extends Controller {
         return redirect()->route('admin.accounts.index')->with('success', 'አካውንቱ ተሰርዟል!');
     }
 }
+

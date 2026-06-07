@@ -28,7 +28,7 @@
         }
         input:focus { border-color: #e74c3c; outline: none; box-shadow: 0 0 5px rgba(231, 76, 60, 0.2); }
 
-        /* የፎቶ ማሳያ ስታይል */
+        /* የፎቶ ማሳያ ስታይል ማስተካከያ */
         #customer-info {
             display: none;
             flex-direction: column;
@@ -43,10 +43,11 @@
             width: 110px;
             height: 110px;
             border-radius: 50%;
-            object-fit: cover;
+            object-fit: cover; /* ፎቶው እንዳይጨማደድ ያደርጋል */
             border: 3px solid #e74c3c;
             margin-bottom: 10px;
             background: #eee;
+            image-rendering: -webkit-optimize-contrast; /* የፎቶውን ጥራት ለመጨመር */
         }
 
         .btn {
@@ -72,6 +73,17 @@
         }
         .back-link { display: block; text-align: center; margin-top: 20px; text-decoration: none; color: #7f8c8d; font-size: 14px; }
         .back-link:hover { color: #2c3e50; }
+
+        /* ህትመት (Print) በሚደረግበት ጊዜ ጥራቱን ለመጠበቅ የተጨመረ CSS */
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            img {
+                image-rendering: -webkit-optimize-contrast !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -79,7 +91,6 @@
 <div class="container">
     <h2>🏧 ብር ማውጫ (Withdraw)</h2>
 
-    <!-- የደንበኛ ፎቶ እና ስም ማሳያ -->
     <div id="customer-info">
         <img id="customer-photo" src="" alt="Customer Photo">
         <div id="account_name" class="account-name-display"></div>
@@ -98,7 +109,7 @@
 
         <div class="form-group">
             <label>የገንዘብ መጠን (Amount in ETB):</label>
-            <input type="number" name="amount" placeholder="ማውጣት የሚፈልጉትን መጠን..." value="{{ old('amount') }}" required>
+            <input type="number" id="amount_input" name="amount" min="1" placeholder="ማውጣት የሚፈልጉትን መጠን..." value="{{ old('amount') }}" required>
             @error('amount') <div class="error">{{ $message }}</div> @enderror
         </div>
 
@@ -121,6 +132,7 @@
         let infoDiv = document.getElementById('customer-info');
         let nameDisplay = document.getElementById('account_name');
         let photoDisplay = document.getElementById('customer-photo');
+        let amountInput = document.getElementById('amount_input'); // ተጨምሯል
 
         if (accNo.length >= 13) {
             fetch(`/admin/accounts/search/${accNo}`)
@@ -130,7 +142,13 @@
                         nameDisplay.innerText = "👤 ባለቤት፡ " + data.name;
                         nameDisplay.style.color = "#27ae60";
 
-                        // ማስተካከያ፡ data.photo ሙሉ URL ስለሆነ መጨመር አያስፈልገውም
+                        // ማስተካከያ፡ ከባላንሱ ላይ 100 ብር ቀንሶ ከፍተኛውን ገደብ ማስቀመጥ
+                        if (data.balance) {
+                            let maxAmount = data.balance - 100;
+                            amountInput.max = maxAmount > 0 ? maxAmount : 0;
+                        }
+
+                        // ማስተካከያ፡ data.photo ቀጥታ ሙሉ URL ስለሆነ መጨመር አያስፈልገውም
                         if (data.photo) {
                             photoDisplay.src = data.photo;
                         } else {
@@ -144,6 +162,7 @@
                         nameDisplay.style.color = "#e74c3c";
                         photoDisplay.src = "https://ui-avatars.com/api/?name=Unknown&background=e74c3c&color=fff";
                         infoDiv.style.display = "flex";
+                        amountInput.removeAttribute('max'); // አካውንት ከጠፋ ገደቡ ይነሳል
                     }
                 })
                 .catch(err => {
@@ -152,9 +171,9 @@
                 });
         } else {
             infoDiv.style.display = "none";
+            amountInput.removeAttribute('max'); // ቁጥሩ ካነሰ ገደቡ ይነሳል
         }
     });
 </script>
-
 </body>
 </html>

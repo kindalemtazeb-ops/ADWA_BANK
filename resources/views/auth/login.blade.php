@@ -9,7 +9,15 @@
         <div>
             <x-input-label for="email" :value="__('Email')" />
             <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+
+            <!-- እዚህ ጋር የ LoginRequest መልእክት በቀይ እንዲወጣ ያደርገዋል -->
+            @if ($errors->has('email'))
+                <div class="mt-2 text-sm text-red-600 font-bold">
+                    {{ $errors->first('email') }}
+                </div>
+            @else
+                <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            @endif
         </div>
 
         <!-- Password -->
@@ -45,3 +53,4 @@
         </div>
     </form>
 </x-guest-layout>
+

@@ -12,7 +12,6 @@ Route::get('/', function () {
 Route::get('/dashboard', [AccountController::class, 'dashboard'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
-
 Route::middleware('auth')->group(function () {
 
     // 1. Dashboard
@@ -30,7 +29,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/admin/accounts/transfer', [AccountController::class, 'transferForm'])->name('admin.accounts.transferForm');
     Route::post('/admin/accounts/transfer', [AccountController::class, 'doTransfer'])->name('admin.accounts.doTransfer');
-
+   
     // 3. CRUD ስራዎች በ Resource
     Route::resource('admin/accounts', AccountController::class)->names([
         'index'   => 'admin.accounts.index',

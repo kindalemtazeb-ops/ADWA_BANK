@@ -26,7 +26,6 @@ class AccountController extends Controller {
     }
 
     // --- ደንበኞችን በዝርዝር ማሳያ (Index) ---
-    // እዚህ ጋር የፍለጋ logic ከ 'LIKE' ወደ '=' ተቀይሯል (Exact Match እንዲሆን)
     public function index(Request $request) {
         $search = $request->input('search');
 
@@ -45,9 +44,9 @@ class AccountController extends Controller {
     public function show($id) {
         $account = Account::findOrFail($id);
         $recentTransactions = Transaction::where('account_number', $account->account_number)
-                                        ->latest()
-                                        ->take(10)
-                                        ->get();
+                                         ->latest()
+                                         ->take(10)
+                                         ->get();
 
         return view('admin.accounts.show', compact('account', 'recentTransactions'));
     }
@@ -55,9 +54,14 @@ class AccountController extends Controller {
     public function create() { return view('admin.accounts.create'); }
     public function depositForm() { return view('admin.accounts.deposit'); }
     public function withdrawForm() { return view('admin.accounts.withdraw'); }
-    public function transferForm() { return view('admin.accounts.transfer'); }
 
-    // --- አካውንት ቁጥር ሲገባ ስም እና ፎቶ ፍለጋ (AJAX) ---
+    // ማስተካከያ፦ በብሌዱ ላይ የተፈጠረውን የ $account ስህተት ለመከላከል ባዶ ኦብጀክት ልከናል።
+    public function transferForm() {
+        $account = new Account();
+        return view('admin.accounts.transfer', compact('account'));
+    }
+
+    // --- አካውንት ቁጥር ሲገባ ስም ፣ ፎቶ እና ስልክ ፍለጋ (AJAX) ---
     public function searchAccount($query) {
         $account = Account::where('account_number', $query)->first();
 
@@ -65,6 +69,7 @@ class AccountController extends Controller {
             return response()->json([
                 'success' => true,
                 'name' => $account->full_name,
+                'phone' => $account->phone_number,
                 'photo' => $account->photo ? asset('storage/' . $account->photo) : null,
             ]);
         }
@@ -75,7 +80,7 @@ class AccountController extends Controller {
         ]);
     }
 
-    // --- አዲስ ደንበኛ መመዝገቢያ ---
+    // --- 아ዲስ ደንበኛ መመዝገቢያ ---
     public function store(Request $request) {
         $request->validate([
             'full_name' => [
@@ -182,6 +187,7 @@ class AccountController extends Controller {
 
         $fromAccNo = str_replace(' ', '', $request->from_account);
         $toAccNo = str_replace(' ', '', $request->to_account);
+
         $from = Account::where('account_number', $fromAccNo)->first();
         $to = Account::where('account_number', $toAccNo)->first();
 
@@ -193,7 +199,7 @@ class AccountController extends Controller {
             return back()->withErrors(['amount' => 'ቀሪ ሂሳብ ከ 100 ብር በታች መሆን አይችልም!']);
         }
 
-        DB::transaction(function () use ($from, $request, $toAccNo, $to) {
+        $transaction = DB::transaction(function () use ($from, $request, $toAccNo, $to) {
             $from->decrement('balance', $request->amount);
 
             if ($to) {
@@ -207,7 +213,7 @@ class AccountController extends Controller {
                 ]);
             }
 
-            Transaction::create([
+            return Transaction::create([
                 'account_number' => $from->account_number,
                 'type' => 'Transfer Out',
                 'amount' => $request->amount,
@@ -217,20 +223,31 @@ class AccountController extends Controller {
             ]);
         });
 
-        return redirect()->route('admin.accounts.index')->with('success', "ዝውውሩ ተሳክቷል!");
+        $receiver_name = $to ? $to->full_name : $request->input('receiver_name', 'CBE User');
+        $receiver_phone = $to ? $to->phone_number : $request->input('receiver_phone', 'N/A');
+
+        return view('admin.accounts.receipt', [
+            'transaction' => $transaction,
+            'sender' => $from,
+            'receiver' => $to,
+            'receiver_acc' => $toAccNo,
+            'receiver_name' => $receiver_name,
+            'receiver_phone' => $receiver_phone
+        ]);
     }
 
     // --- ገቢ ማድረጊያ ---
     public function doDeposit(Request $request) {
         $request->validate(['account_number' => 'required', 'amount' => 'required|numeric|min:1']);
         $accNo = str_replace(' ', '', $request->account_number);
+
         $account = Account::where('account_number', $accNo)->first();
 
         if (!$account) return back()->withErrors(['account_number' => 'አካውንቱ አልተገኘም!']);
 
-        DB::transaction(function () use ($account, $request) {
+        $transaction = DB::transaction(function () use ($account, $request) {
             $account->increment('balance', $request->amount);
-            Transaction::create([
+            return Transaction::create([
                 'account_number' => $account->account_number,
                 'type' => 'Deposit',
                 'amount' => $request->amount,
@@ -239,22 +256,37 @@ class AccountController extends Controller {
             ]);
         });
 
-        return redirect()->route('admin.accounts.index')->with('success', "ብር {$request->amount} ገቢ ተደርጓል!");
+        return view('admin.accounts.receipt', ['transaction' => $transaction, 'sender' => $account]);
     }
 
-    // --- ወጪ ማድረጊያ ---
+    // --- ወጪ ማድረጊያ ---// --- ወጪ ማድረጊያ ---
     public function doWithdraw(Request $request) {
-        $request->validate(['account_number' => 'required', 'amount' => 'required|numeric|min:1', 'pin' => 'required|digits:4']);
+        $request->validate([
+            'account_number' => 'required',
+            'amount' => 'required|numeric|min:1',
+            'pin' => 'required|digits:4'
+        ]);
+
         $accNo = str_replace(' ', '', $request->account_number);
         $account = Account::where('account_number', $accNo)->first();
 
+        // 1. አካውንቱ መኖሩን እና የፒን ቁጥሩ ትክክል መሆኑን ማረጋገጥ
         if (!$account || !Hash::check($request->pin, $account->pin)) {
             return back()->withErrors(['pin' => 'የሚስጥር ቁጥር ስህተት ነው!']);
         }
 
-        DB::transaction(function () use ($account, $request) {
+        // 2. ወጪ ከተደረገ በኋላ ቢያንስ 100 ብር መቅረቱን ማረጋገጥ (ቁልፍ ማስተካከያ)
+        if (($account->balance - $request->amount) < 100) {
+            return back()->withErrors(['amount' => 'ቀሪ ሂሳብ ከ 100 ብር በታች መሆን አይችልም!']);
+        }
+
+        // 3. መስፈርቱን ካሟላ በደህንነት ገንዘቡን መቀነስ እና ታሪክ መመዝገብ
+        $transaction = DB::transaction(function () use ($account, $request) {
+            // የአሁኑን አካውንት ባላንስ መቀነስ
             $account->decrement('balance', $request->amount);
-            Transaction::create([
+
+            // የትራንዛክሽን ታሪክ መፍጠር
+            return Transaction::create([
                 'account_number' => $account->account_number,
                 'type' => 'Withdraw',
                 'amount' => $request->amount,
@@ -263,9 +295,8 @@ class AccountController extends Controller {
             ]);
         });
 
-        return redirect()->route('admin.accounts.index')->with('success', "ብር {$request->amount} ወጪ ተደርጓል!");
+        return view('admin.accounts.receipt', ['transaction' => $transaction, 'sender' => $account]);
     }
-
     // --- አካውንት ማጥፊያ ---
     public function destroy($id) {
         $account = Account::findOrFail($id);
@@ -276,4 +307,3 @@ class AccountController extends Controller {
         return redirect()->route('admin.accounts.index')->with('success', 'አካውንቱ ተሰርዟል!');
     }
 }
-

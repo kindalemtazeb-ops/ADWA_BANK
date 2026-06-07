@@ -10,7 +10,7 @@
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
         .btn { width: 100%; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
 
-        /* የፎቶ ማስቀመጫ ስታይል */
+        /* የፎቶ ማስቀመጫ ስታይል ማስተካከያ */
         .customer-preview {
             text-align: center;
             margin-bottom: 20px;
@@ -23,15 +23,27 @@
             width: 110px;
             height: 110px;
             border-radius: 50%;
-            object-fit: cover;
+            object-fit: cover; /* ፎቶው እንዳይጨማደድ እና እንዳይረዝም ያደርጋል */
             border: 3px solid #27ae60;
             background: #eee;
+            image-rendering: -webkit-optimize-contrast; /* የፎቶውን የጥራት ደረጃ ለመጨመር */
         }
         .customer-name {
             display: block;
             margin-top: 10px;
             font-weight: bold;
             color: #27ae60;
+        }
+
+        /* ህትመት (Print) በሚደረግበት ጊዜ ጥራቱን ለመጠበቅ የተጨመረ CSS */
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            img {
+                image-rendering: -webkit-optimize-contrast !important;
+            }
         }
     </style>
 </head>
@@ -40,7 +52,6 @@
 <div class="container">
     <h2 style="text-align: center;">💰 ብር ማስቀመጫ (DEPOSIT)</h2>
 
-    <!-- የደንበኛ ፎቶ እና ስም ማሳያ -->
     <div id="customer-info" class="customer-preview">
         <img id="customer-photo" src="" alt="Customer Photo">
         <span id="account-name" class="customer-name"></span>
@@ -80,10 +91,11 @@
                         if (data.photo) {
                             photoDisplay.src = data.photo;
                         } else {
-                            // ፎቶ ከሌለ ይህን default ይጠቀማል (ሊንኩ ትክክል መሆኑን እርግጠኛ ሁን)
-                            photoDisplay.src = "https://ui-avatars.com/api/?name=" + data.name + "&background=random";
+                            // ፎቶ ከሌለ ይህን default ይጠቀማል
+                            photoDisplay.src = "https://ui-avatars.com/api/?name=" + urlencode(data.name) + "&background=random";
                         }
 
+                        // ማስተካከያ፡ ከ .style.style.display ወደ ትክክለኛው .style.display ተቀይሯል
                         infoBox.style.display = 'block';
                     } else {
                         infoBox.style.display = 'none';
@@ -97,6 +109,13 @@
             infoBox.style.display = 'none';
         }
     });
+
+    // ዩአርኤልን ሴፍ ለማድረግ የረዳት ፈንክሽን
+    function urlencode(str) {
+        return encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
+            return '%' + c.charCodeAt(0).toString(16);
+        });
+    }
 </script>
 
 </body>

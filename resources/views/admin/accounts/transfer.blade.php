@@ -1,163 +1,273 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="am">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ADWA BANK - TRANSFER</title>
     <style>
-        body { font-family: sans-serif; background: #f8f9fa; padding: 30px; }
-        .container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
-        h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
-        label { font-weight: bold; color: #34495e; display: block; margin-top: 15px; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
-        .btn { width: 100%; padding: 14px; background: #f39c12; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 20px; }
-        .btn:hover { background: #e67e22; }
-        .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
-        .name-info { font-size: 13px; font-weight: bold; display: block; margin-bottom: 5px; }
-        .error-text { color: #e74c3c; font-size: 12px; display: block; margin-top: 5px; }
-        .back-link { display: block; text-align: center; margin-top: 15px; color: #3498db; text-decoration: none; font-size: 14px; }
-        .preview-box { display: flex; align-items: center; gap: 10px; margin-top: 5px; padding: 10px; border-radius: 8px; display: none; background: #f0f3f1; transition: 0.3s; }
-        .preview-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #27ae60; }
-        .sender-box { border-left: 4px solid #4B1A60; }
-        .receiver-box { border-left: 4px solid #27ae60; }
-        .external-box { border-left: 4px solid #3498db; background: #e8f4fd; }
-        .bank-tag { background: #2c3e50; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-left: auto; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 30px; }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            max-width: 500px;
+            margin: auto;
+        }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 25px; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #2c3e50; }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 15px;
+            transition: 0.3s;
+        }
+        input:focus, select:focus { border-color: #3498db; outline: none; box-shadow: 0 0 5px rgba(52, 152, 219, 0.2); }
+
+        /* የላኪ እና የተቀባይ መረጃ ማሳያ ሳጥኖች */
+        .info-box {
+            display: none;
+            align-items: center;
+            gap: 15px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        #sender-info { border: 1px dashed #e67e22; background: #fffdfb; }
+        #receiver-info { border: 1px dashed #27ae60; background: #f9fdfa; }
+
+        .info-photo {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #eee;
+            image-rendering: -webkit-optimize-contrast;
+        }
+        #sender-photo { border: 2px solid #e67e22; }
+        #receiver-photo { border: 2px solid #27ae60; }
+
+        .details { font-size: 14px; color: #2c3e50; }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+        .btn:hover { background: #2980b9; }
+        .error { color: #e74c3c; font-size: 13px; margin-top: 5px; font-weight: 500; }
+        .back-link { display: block; text-align: center; margin-top: 20px; text-decoration: none; color: #7f8c8d; font-size: 14px; }
+        .back-link:hover { color: #2c3e50; }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <h2>💸 ብር ማስተላለፊያ (TRANSFER)</h2>
+    <h2>💸 ገንዘብ ማስተላለፊያ (Transfer)</h2>
+
+    <div id="sender-info" class="info-box">
+        <img id="sender-photo" class="info-photo" src="" alt="Sender Photo">
+        <div class="details">
+            <div id="sender_name" style="font-weight: bold; color: #e67e22; font-size: 16px;"></div>
+            <div id="sender_phone" style="color: #555; margin-top: 3px;"></div>
+        </div>
+    </div>
+
+    <div id="receiver-info" class="info-box">
+        <img id="receiver-photo" class="info-photo" src="" alt="Receiver Photo">
+        <div class="details">
+            <div id="receiver_name" style="font-weight: bold; color: #27ae60; font-size: 16px;"></div>
+            <div id="receiver_phone" style="color: #555; margin-top: 3px;"></div>
+        </div>
+    </div>
 
     <form action="{{ route('admin.accounts.doTransfer') }}" method="POST">
         @csrf
 
-        <!-- ላኪ (Sender) -->
-        <label>የላኪ አካውንት ቁጥር:</label>
-        <input type="text" name="from_account" id="from_account"
-               placeholder="የላኪውን የአካውንት ቁጥር ያስገቡ"
-               oninput="this.value = this.value.replace(/\s/g, ''); checkUser(this.value, 'sender_info', 'sender_photo', 'sender_name')" required>
+        <input type="hidden" name="sender_id" value="{{ $account->id ?? '' }}">
 
-        <div id="sender_info" class="preview-box sender-box">
-            <img id="sender_photo" src="" class="preview-img">
-            <span id="sender_name" class="name-info"></span>
-            <span class="bank-tag">Adwa Bank</span>
+        <div class="form-group">
+            <label>የላኪ አካውንት ቁጥር (Sender Account):</label>
+            <input type="text" id="sender_account" name="from_account" placeholder="የላኪውን አካውንት ቁጥር ያስገቡ..." value="{{ old('from_account') }}" required autocomplete="off">
+            @error('from_account') <div class="error">{{ $message }}</div> @enderror
         </div>
-        @error('from_account') <span class="error-text">{{ $message }}</span> @enderror
 
-        <label>የላኪ ሚስጥር ቁጥር (PIN):</label>
-        <input type="password" name="pin" placeholder="የላኪውን 4 ድጂት PIN ያስገቡ" maxlength="4" required>
+        <div class="form-group">
+    <label>የባንክ አይነት (Select Bank):</label>
+    <select name="bank_type" id="bank_type" required>
+        <option value="adwa">ADWA BANK (የእኛ ባንክ)</option>
+        <option value="cbe">CBE (የኢትዮጵያ ንግድ ባንክ)</option>
+        <option value="awash">Awash Bank (አዋሽ ባንክ)</option>
+        <option value="dashen">Dashen Bank (ዳሽን ባንክ)</option>
+        <option value="boa">Bank of Abyssinia (አቢሲኒያ ባንክ)</option>
+        <option value="wegagen">Wegagen Bank (ወጋገን ባንክ)</option>
+        <option value="united">Hibret Bank (ኅብረት ባንክ)</option>
+        <option value="nib">Nib International Bank (ንብ ባንክ)</option>
+        <option value="coop">Cooperative Bank of Oromia (ኦሮሚያ ኅብረት ሥራ ባንክ)</option>
+        <option value="oromia">Oromia Bank (ኦሮሚያ ባንክ)</option>
+        <option value="zemen">Zemen Bank (ዛመን ባንክ)</option>
+        <option value="abay">Abay Bank (ዐባይ ባንክ)</option>
+        <option value="berhan">Berhan Bank (ብርሃን ባንክ)</option>
+        <option value="bunna">Bunna Bank (ቡና ባንክ)</option>
+        <option value="awach">Awach SACCO (አዋች ብድርና ቁጠባ)</option>
+        <option value="enat">Enat Bank (እናት ባንክ)</option>
+        <option value="global">Amhara Bank (አማራ ባንክ)</option>
+        <option value="siinqee">Siinqee Bank (ሲንቄ ባንክ)</option>
+        <option value="tsehay">Tsehay Bank (ፀሐይ ባንክ)</option>
+        <option value="goh">Goh Betoch Bank (ጎህ ቤቶች ባንክ)</option>
+        <option value="hijra">Hijra Bank (ሂጅራ ባንክ - ከወለድ ነፃ)</option>
+        <option value="zamzam">ZamZam Bank (ዘምዘም ባንክ - ከወለድ ነፃ)</option>
+        <option value="telebirr">Telebirr (ቴሌብር)</option>
+        <option value="cbe_birr">CBE Birr (ሲቢኢ ብር)</option>
+    </select>
+</div>
 
-        <hr style="border: 0.5px solid #eee; margin: 25px 0;">
-
-        <!-- የባንክ ምርጫ -->
-        <label>ተቀባይ ባንክ:</label>
-        <select name="bank_name" id="bank_name" onchange="resetReceiverField()" required>
-            <option value="Adwa Bank">Adwa Bank (Internal)</option>
-            <optgroup label="የኢትዮጵያ ባንኮች (EthSwitch)">
-                <option value="CBE">የኢትዮጵያ ንግድ ባንክ (CBE)</option>
-                <option value="Dashen">ዳሽን ባንክ (Dashen)</option>
-                <option value="Awash">አዋሽ ባንክ (Awash)</option>
-                <option value="Abyssinia">አቢሲኒያ ባንክ (Abyssinia)</option>
-                <option value="Zemen">ዘመን ባንክ (Zemen)</option>
-                <option value="Oromia">ኦሮሚያ ባንክ (Oromia)</option>
-                <option value="Hibret">ህብረት ባንክ (Hibret)</option>
-                <option value="Coop">የኦሮሚያ ህብረት ስራ ባንክ (Coop)</option>
-                <option value="Berhan">ብርሃን ባንክ (Berhan)</option>
-                <option value="Bunna">ቡና ባንክ (Bunna)</option>
-                <option value="Abay">አባይ ባንክ (Abay)</option>
-                <option value="Enat">እናት ባንክ (Enat)</option>
-                <option value="Global">ግሎባል ባንክ (Global)</option>
-            </optgroup>
-        </select>
-
-        <!-- ተቀባይ (Receiver) -->
-        <label>የተቀባይ አካውንት ቁጥር:</label>
-        <input type="text" name="to_account" id="to_account"
-               placeholder="የተቀባዩን የአካውንት ቁጥር ያስገቡ"
-               oninput="this.value = this.value.replace(/\s/g, ''); checkUser(this.value, 'receiver_info', 'receiver_photo', 'receiver_name', true)" required>
-
-        <div id="receiver_info" class="preview-box receiver-box">
-            <img id="receiver_photo" src="" class="preview-img">
-            <span id="receiver_name" class="name-info"></span>
-            <span id="target_bank_tag" class="bank-tag">Adwa Bank User</span>
+        <div class="form-group">
+            <label>የተቀባይ አካውንት ቁጥር (Receiver Account):</label>
+            <input type="text" id="receiver_account" name="to_account"
+                   placeholder="የተቀባዩን አካውንት ቁጥር ያስገቡ..."
+                   value="{{ old('to_account') }}" required autocomplete="off">
+            @error('to_account') <div class="error">{{ $message }}</div> @enderror
         </div>
-        @error('to_account') <span class="error-text">{{ $message }}</span> @enderror
 
-        <label>የብር መጠን:</label>
-        <input type="number" name="amount" placeholder="የሚላከው የገንዘብ መጠን" min="1" required>
-        @error('amount') <span class="error-text">{{ $message }}</span> @enderror
+        <input type="hidden" id="hidden_receiver_name" name="receiver_name">
+        <input type="hidden" id="hidden_receiver_phone" name="receiver_phone">
 
-        <button type="submit" id="submit_btn" class="btn" disabled>አስተላልፍ</button>
+        <div class="form-group">
+            <label>የብር መጠን (Amount in ETB):</label>
+            <input type="number" name="amount" placeholder="ማስተላለፍ የሚፈልጉትን መጠን..." value="{{ old('amount') }}" required>
+            @error('amount') <div class="error">{{ $message }}</div> @enderror
+        </div>
+
+        <div class="form-group">
+            <label>ሚስጥር ቁጥር (PIN):</label>
+            <input type="password" name="pin" placeholder="የአካውንቱን 4 ድጂት ፒን ያስገቡ" maxlength="4" required>
+            @error('pin') <div class="error">{{ $message }}</div> @enderror
+        </div>
+
+        <button type="submit" class="btn">አሁኑኑ አስተላልፍ (Transfer Now)</button>
+
+        <a href="{{ route('admin.accounts.index') }}" class="back-link">← ወደ ዝርዝር ተመለስ</a>
     </form>
-
-    <a href="{{ route('admin.accounts.index') }}" class="back-link">ወደ ዝርዝር ተመለስ</a>
 </div>
 
 <script>
-    function resetReceiverField() {
-        document.getElementById('to_account').value = '';
-        document.getElementById('receiver_info').style.display = "none";
-        document.getElementById('submit_btn').disabled = true;
-    }
+    // --- 1. የላኪ አካውንት መፈለጊያ ጃቫስክሪፕት (Sender Live Search) ---
+    document.getElementById('sender_account').addEventListener('input', function() {
+        let accNo = this.value.replace(/\s+/g, '');
+        let infoDiv = document.getElementById('sender-info');
+        let nameDisplay = document.getElementById('sender_name');
+        let phoneDisplay = document.getElementById('sender_phone');
+        let photoDisplay = document.getElementById('sender-photo');
 
-    function checkUser(query, boxId, photoId, nameId, isReceiver = false) {
-        let bank = document.getElementById('bank_name').value;
-        let box = document.getElementById(boxId);
-        let nameField = document.getElementById(nameId);
-        let photoField = document.getElementById(photoId);
-        let bankTag = document.getElementById('target_bank_tag');
-        let submitBtn = document.getElementById('submit_btn');
-
-        // ማንኛውንም ስፔስ አጥፋ
-        let cleanQuery = query.replace(/\s+/g, '');
-
-        if (cleanQuery.length >= 10) {
-            // በ ባንክ ምርጫው መሰረት URL መቀየር (ለ Adwa Bank 'search' ሌላ ከሆነ 'check-external')
-            let url = (bank === 'Adwa Bank' || !isReceiver)
-                      ? `/admin/accounts/search/${cleanQuery}`
-                      : `/admin/accounts/check-external/${bank}/${cleanQuery}`;
-
-            fetch(url)
-                .then(res => res.json())
+        if (accNo.length >= 13) {
+            fetch(`/admin/accounts/search/${accNo}`)
+                .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        nameField.innerText = (isReceiver && bank !== 'Adwa Bank' ? "🏢 " : "👤 ") + data.name;
-                        nameField.style.color = "#2c3e50";
+                        nameDisplay.innerText = "👤 ላኪ፡ " + data.name;
+                        let phone = data.phone ? data.phone : 'የለም';
+                        phoneDisplay.innerText = "📞 ስልክ፡ " + phone;
 
-                        if (photoField) {
-                            if (data.photo && bank === 'Adwa Bank') {
-                                // ፎቶው ካለ እና Adwa Bank ከሆነ ብቻ አሳይ
-                                photoField.src = data.photo.startsWith('http') ? data.photo : "/storage/" + data.photo;
-                                photoField.style.display = "block";
-                            } else {
-                                photoField.style.display = "none";
-                            }
+                        if (data.photo) {
+                            photoDisplay.src = data.photo;
+                        } else {
+                            photoDisplay.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(data.name) + "&background=random&color=fff";
                         }
-
-                        if (isReceiver) {
-                            if (bank !== 'Adwa Bank') box.classList.add('external-box');
-                            else box.classList.remove('external-box');
-
-                            if(bankTag) bankTag.innerText = bank + " User";
-                            submitBtn.disabled = false;
-                        }
-                        box.style.display = "flex";
+                        infoDiv.style.display = "flex";
                     } else {
-                        nameField.innerText = "❌ አካውንቱ አልተገኘም!";
-                        nameField.style.color = "red";
-                        if (photoField) photoField.style.display = "none";
-                        box.style.display = "flex";
-                        if (isReceiver) submitBtn.disabled = true;
+                        infoDiv.style.display = "none";
                     }
                 })
                 .catch(err => {
-                    console.error("Error:", err);
-                    if (isReceiver) submitBtn.disabled = true;
+                    console.error("Error fetching sender:", err);
+                    infoDiv.style.display = "none";
                 });
         } else {
-            box.style.display = "none";
-            if (isReceiver) submitBtn.disabled = true;
+            infoDiv.style.display = "none";
         }
-    }
+    });
+
+    // --- 2. የተቀባይ አካውንት መፈለጊያ ጃቫስክሪፕት (Receiver Live Search) ---
+    document.getElementById('receiver_account').addEventListener('input', function() {
+        let accNo = this.value.replace(/\s+/g, '');
+        let bankType = document.getElementById('bank_type').value;
+
+        let infoDiv = document.getElementById('receiver-info');
+        let nameDisplay = document.getElementById('receiver_name');
+        let phoneDisplay = document.getElementById('receiver_phone');
+        let photoDisplay = document.getElementById('receiver-photo');
+
+        let hiddenName = document.getElementById('hidden_receiver_name');
+        let hiddenPhone = document.getElementById('hidden_receiver_phone');
+
+        if (bankType === 'adwa' && accNo.length >= 13) {
+            fetch(`/admin/accounts/search/${accNo}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        nameDisplay.innerText = "👤 ተቀባይ፡ " + data.name;
+                        let phone = data.phone ? data.phone : 'የለም';
+                        phoneDisplay.innerText = "📞 ስልክ፡ " + phone;
+
+                        hiddenName.value = data.name;
+                        hiddenPhone.value = data.phone;
+
+                        if (data.photo) {
+                            photoDisplay.src = data.photo;
+                        } else {
+                            photoDisplay.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(data.name) + "&background=random&color=fff";
+                        }
+                        infoDiv.style.display = "flex";
+                    } else {
+                        setDefaultExternal(accNo, "የማይታወቅ ደንበኛ");
+                    }
+                })
+                .catch(err => {
+                    console.error("Error fetching receiver:", err);
+                    infoDiv.style.display = "none";
+                });
+        }
+        else if (bankType !== 'adwa' && accNo.length >= 10) {
+            let bankName = bankType.toUpperCase();
+            setDefaultExternal(accNo, bankName + " User");
+        } else {
+            infoDiv.style.display = "none";
+            hiddenName.value = "";
+            hiddenPhone.value = "";
+        }
+
+        function setDefaultExternal(accountNum, defaultName) {
+            nameDisplay.innerText = "👤 ተቀባይ፡ " + defaultName;
+            phoneDisplay.innerText = "📞 ስልክ፡ አልተያያዘም (ውጭ ባንክ)";
+
+            hiddenName.value = defaultName;
+            hiddenPhone.value = "N/A";
+
+            photoDisplay.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(defaultName) + "&background=6f42c1&color=fff";
+            infoDiv.style.display = "flex";
+        }
+    });
+
+    document.getElementById('bank_type').addEventListener('change', function() {
+        document.getElementById('receiver_account').value = "";
+        document.getElementById('receiver-info').style.display = "none";
+        document.getElementById('receiver_account').dispatchEvent(new Event('input'));
+    });
 </script>
+
 </body>
 </html>

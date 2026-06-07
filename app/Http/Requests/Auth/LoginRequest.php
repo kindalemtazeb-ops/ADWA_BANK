@@ -60,19 +60,17 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 4)) {
             return;
         }
 
         event(new Lockout($this));
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
+        $minutes = ceil($seconds / 60);
 
         throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
+            'email' => "አራት ጊዜ ተሳስተሃል! ለደህንነትህ ሲባል ለ $minutes ደቂቃ ታግደሃል። እባክህ ትንሽ ቆይተህ ሞክር።",
         ]);
     }
 
